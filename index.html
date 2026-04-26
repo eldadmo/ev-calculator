@@ -3,279 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EV Charge Israel - מחשבון טעינה</title>
+    <title>EV Control Pro | Premium Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Assistant', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; text-align: center; }
-        .input-style:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
-        .input-style:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
-        .accent-text { color: #38bdf8; }
-        .btn-outline { border: 1px solid #475569; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; transition: all 0.2s; color: #94a3b8; }
-        .btn-outline:hover:not(:disabled) { background: #475569; border-color: #94a3b8; color: white; }
-        .pulse { animation: pulse-animation 2s infinite; }
-        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .progress-fill { transition: width 1s linear; }
+        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 10px; width: 100%; color: white; text-align: center; transition: all 0.3s; }
+        .input-style:disabled { opacity: 0.5; cursor: not-allowed; background: #1e293b; }
+        .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 800; }
+        .btn-preset { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px 6px; font-size: 0.7rem; color: #94a3b8; flex: 1; }
+        .progress-bg { background: rgba(51, 65, 85, 0.5); border-radius: 20px; height: 12px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #38bdf8, #22c55e); height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
     </style>
 </head>
-<body class="p-4 md:p-8 min-h-screen flex flex-col items-center">
+<body class="p-4 min-h-screen flex flex-col items-center">
 
-    <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold mb-2 italic text-white">EV<span class="accent-text">Charge</span> IL</h1>
-        <p class="text-slate-400 text-sm">מחשבון טעינה חכם לקהילת ה-EV בישראל</p>
+    <header class="text-center mb-4">
+        <h1 class="text-2xl font-extrabold italic tracking-tighter text-white">EV<span class="text-sky-400">CONTROL</span> PRO</h1>
     </header>
 
+    <div class="flex space-x-4 space-x-reverse mb-6 w-full max-w-lg justify-center border-b border-slate-700">
+        <button id="tabCalcBtn" onclick="switchTab('calc')" class="pb-2 px-4 tab-active">מחשבון ומדידה</button>
+        <button id="tabPlanBtn" onclick="switchTab('plan')" class="pb-2 px-4 text-slate-400">מתכנן (Planner)</button>
+    </div>
+
     <main class="glass p-6 rounded-3xl w-full max-w-lg shadow-2xl">
-        <div id="inputSection" class="grid grid-cols-1 gap-5">
+        
+        <section class="grid grid-cols-2 gap-4 mb-6 border-b border-slate-700 pb-6">
+            <div class="col-span-2">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">דגם רכב וקיבולת (kWh)</label>
+                <div class="flex gap-2">
+                    <select id="carModel" class="input-style w-2/3 lockable" onchange="updateCarData()">
+                        <option value="vw_id4">VW ID.4 (77kWh)</option>
+                        <option value="byd_atto3">BYD Atto 3 (60.5kWh)</option>
+                        <option value="custom">אחר...</option>
+                    </select>
+                    <input type="number" id="capacity" class="input-style w-1/3 lockable" value="77" oninput="calculate()">
+                </div>
+            </div>
             
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-400">בחר דגם רכב</label>
-                <select id="carModel" class="input-style w-full" onchange="handleCarChange()">
-                    <option value="vw_id4">VW ID.4 (77kWh net)</option>
-                    <option value="byd_atto3">BYD Atto 3 (60.5kWh)</option>
-                    <option value="tesla_m3_rwd">Tesla Model 3 RWD (57.5kWh)</option>
-                    <option value="tesla_my_lr">Tesla Model Y LR (75kWh)</option>
-                    <option value="hyundai_ioniq5">Hyundai Ioniq 5 (72.6kWh)</option>
-                    <option value="geely_460">Geely Geometry C (70kWh)</option>
-                    <option value="custom">הזנה ידנית...</option>
-                </select>
+            <div class="col-span-1">
+                <label class="block text-[10px] font-bold text-slate-500 mb-1">הספק עמדה (kW)</label>
+                <input type="number" id="power" class="input-style lockable" value="11" oninput="calculate()">
+                <div class="flex gap-1 mt-2">
+                    <button class="btn-preset lockable" onclick="setPower(11)">ביתי</button>
+                    <button class="btn-preset lockable" onclick="setPower(50)">מהירה</button>
+                    <button class="btn-preset lockable" onclick="setPower(175)">אולטרה</button>
+                </div>
             </div>
 
+            <div class="col-span-1">
+                <label class="block text-[10px] font-bold text-slate-500 mb-1">תעריף קוט"ש (₪)</label>
+                <input type="number" id="kwhPrice" class="input-style lockable" value="0.625" step="0.001" oninput="calculate()">
+                <div class="flex gap-1 mt-2">
+                    <button class="btn-preset lockable" onclick="setPrice(0.625)">בית</button>
+                    <button class="btn-preset lockable" onclick="setPrice(2.2)">חוץ</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="calcView" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400">סוללה נטו (kWh)</label>
-                    <input type="number" id="capacity" class="input-style w-full" value="77" oninput="calculate()">
+                    <label class="block text-xs font-bold text-sky-400 mb-2 text-center">אחוז נוכחי</label>
+                    <input type="number" id="calcCurrent" class="input-style lockable border-sky-900" value="20" oninput="calculate()">
                 </div>
                 <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-bold text-slate-400">הספק (kW)</label>
-                        <div class="flex gap-1">
-                            <button onclick="setPower(11)" class="btn-outline quick-btn">11</button>
-                            <button onclick="setPower(50)" class="btn-outline quick-btn">50</button>
-                        </div>
-                    </div>
-                    <input type="number" id="power" class="input-style w-full" value="11" oninput="calculate()">
+                    <label class="block text-xs font-bold text-green-400 mb-2 text-center">יעד טעינה</label>
+                    <input type="number" id="calcTarget" class="input-style lockable border-green-900" value="80" oninput="calculate()">
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400">אחוז נוכחי</label>
-                    <input type="number" id="currentSoc" class="input-style w-full" value="20" oninput="calculate()">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400 text-balance">יעד טעינה</label>
-                    <input type="number" id="targetSoc" class="input-style w-full" value="80" oninput="calculate()">
+            <div id="measurementBox" class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-center relative">
+                <p id="calcLabel" class="text-[10px] text-slate-500 uppercase tracking-widest">זמן טעינה נותר</p>
+                <p id="calcMainDisplay" class="text-5xl font-black text-white my-1">--:--</p>
+                
+                <div id="progressContainer" class="px-8 mt-4 hidden">
+                    <div class="progress-bg">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                    <p id="progressText" class="text-[10px] text-sky-400 mt-2 font-bold uppercase"></p>
                 </div>
             </div>
 
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <label class="text-xs font-bold text-slate-400">תעריף לקוט״ש (₪)</label>
-                    <div class="flex gap-2">
-                        <button onclick="setPrice(0.625)" class="btn-outline quick-btn">ביתי</button>
-                        <button onclick="setPrice(2.2)" class="btn-outline quick-btn">ציבורי</button>
-                    </div>
+            <button id="timerBtn" onclick="toggleTimer()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all">התחל מדידה</button>
+            
+            <div id="liveStats" class="hidden grid grid-cols-2 gap-2 p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+                <div class="text-center border-l border-slate-700">
+                    <p class="text-[9px] text-slate-500 uppercase">עלות בפועל</p>
+                    <p id="liveCost" class="text-xl font-bold text-green-400">₪0.00</p>
                 </div>
-                <input type="number" id="priceInput" class="input-style w-full" value="0.625" step="0.01" oninput="calculate()">
+                <div class="text-center">
+                    <p class="text-[9px] text-slate-500 uppercase">אנרגיה שנכנסה</p>
+                    <p id="liveKwh" class="text-xl font-bold text-sky-300">0.00 kWh</p>
+                </div>
             </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-slate-700 space-y-6 text-right">
-            <div id="progressContainer" class="hidden space-y-2">
-                <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
-                    <span id="progressText" class="accent-text pulse">טעינה פעילה... 0%</span>
-                    <span id="realtimeEnergy" class="text-slate-400">0.00 kWh</span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-white/5">
-                    <div id="progressBar" class="progress-fill bg-blue-500 h-full w-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center text-center">
-                <div class="w-1/2">
-                    <p class="text-xs text-slate-400 uppercase font-bold">זמן טעינה נותר</p>
-                    <p id="duration" class="text-3xl font-black accent-text leading-none mt-2">--:--</p>
-                </div>
-                <div class="w-1/2 border-r border-slate-700">
-                    <p class="text-xs text-slate-400 uppercase font-bold">שעת סיום משוערת</p>
-                    <p id="finishTime" class="text-2xl font-bold text-white mt-2">--:--</p>
-                </div>
-            </div>
-
-            <div id="timerContainer" class="hidden bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl text-center">
-                <p id="countdown" class="text-3xl font-mono font-bold text-blue-300">00:00:00</p>
-            </div>
-
-            <div class="flex gap-3">
-                <button id="startBtn" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg">
-                    התחל טעינה
-                </button>
-                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 font-bold py-3 px-6 rounded-xl transition border border-red-600/30 text-xs">
-                    עצור
-                </button>
-            </div>
-
-            <div class="bg-slate-800/50 p-4 rounded-2xl flex justify-between items-center">
+        <div id="planView" class="hidden space-y-6">
+            <div class="grid grid-cols-3 gap-2">
                 <div>
-                    <p id="costLabel" class="text-xs text-slate-400 font-bold uppercase">עלות משוערת</p>
-                    <p id="cost" class="text-xl font-bold text-green-400 leading-tight">₪ 0.00</p>
-                    <p id="totalCostEstimate" class="hidden text-[10px] text-slate-500 font-medium">סה"כ לסיום: ₪ 0.00</p>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">נוכחי (%)</label>
+                    <input type="number" id="planCurrent" class="input-style" value="20" oninput="calculate()">
                 </div>
-                <div class="text-right">
-                    <p class="text-[9px] text-slate-500 italic uppercase">חישוב לפי תעריף מוזן</p>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">יעד (%)</label>
+                    <input type="number" id="planTarget" class="input-style" value="80" oninput="calculate()">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">שעת יציאה</label>
+                    <input type="time" id="departureTime" class="input-style" value="07:30" oninput="calculate()">
                 </div>
             </div>
+            <div class="text-center py-8 bg-sky-500/10 rounded-2xl border border-sky-500/30">
+                <p class="text-xs text-sky-300 font-bold uppercase tracking-widest">שעת חיבור מומלצת</p>
+                <p id="planStartTime" class="text-5xl font-black text-white mt-1">--:--</p>
+                <p id="planStatus" class="text-[10px] mt-3 italic"></p>
+            </div>
+        </div>
 
-            <div class="mt-6 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                <p class="text-[11px] text-slate-300 mb-3 font-medium">נהניתם מהמחשבון? תמכו בפיתוח הכלי</p>
-                <div class="flex justify-center">
-                    <a href="https://www.paypal.me/EldadMichaeli" target="_blank" class="flex items-center gap-2 px-5 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/50 rounded-full text-yellow-400 text-xs font-extrabold transition-all hover:scale-105 active:scale-95">
-                        <span>☕</span>
-                        <span>תמכו בפיתוח הכלי</span>
-                    </a>
-                </div>
+        <div class="grid grid-cols-2 gap-3 mt-8 border-t border-slate-700 pt-6">
+            <div class="card-stat text-center">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">עלות כוללת (הערכה)</p>
+                <p id="estCost" class="text-xl font-black text-green-400">₪0.00</p>
+            </div>
+            <div class="card-stat text-center">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">תוספת טווח (ק"מ)</p>
+                <p id="estRange" class="text-xl font-black text-sky-300">+0 ק"מ</p>
             </div>
         </div>
     </main>
 
-    <footer class="my-8 text-slate-500 text-[10px] text-center max-w-xs uppercase tracking-widest leading-loose">
-        פותח עבור קהילת ה-EV בישראל <br> הערכה בלבד
-    </footer>
-
     <script>
-        const evModels = { "vw_id4": 77, "byd_atto3": 60.5, "tesla_m3_rwd": 57.5, "tesla_my_lr": 75, "hyundai_ioniq5": 72.6, "geely_460": 70 };
-        let timerInterval, totalSecondsRemaining = 0, originalSecondsNeeded = 0, isTimerRunning = false, lastSelectedModel = "vw_id4", finalCostEstimate = 0;
+        let state = { currentTab: 'calc', timer: null, start: null };
+        const evModels = { "vw_id4": 77, "byd_atto3": 60.5 };
 
-        async function requestNotificationPermission() {
-            if ("Notification" in window && Notification.permission === "default") {
-                await Notification.requestPermission();
-            }
-        }
-
-        function notifyCompletion() {
-            try {
-                const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-                audio.play();
-            } catch (e) { console.log("Audio play failed"); }
-
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("EV Charge IL", { body: "הטעינה הסתיימה!", dir: "rtl" });
-            } else {
-                alert("הטעינה הסתיימה!");
-            }
-        }
-
-        function setPrice(val) { if (isTimerRunning) return; document.getElementById('priceInput').value = val; calculate(); }
-        function setPower(val) { if (isTimerRunning) return; document.getElementById('power').value = val; calculate(); }
-
-        function handleCarChange() {
-            if (isTimerRunning) {
-                if (!confirm("שינוי סוג הרכב יאפס את המדידה. להמשיך?")) {
-                    document.getElementById('carModel').value = lastSelectedModel;
-                    return;
-                }
-                resetTimer();
-            }
-            lastSelectedModel = document.getElementById('carModel').value;
-            updateCarData();
-        }
-
-        function updateCarData() {
-            const model = document.getElementById('carModel').value;
-            if (model !== 'custom') document.getElementById('capacity').value = evModels[model];
+        function switchTab(t) {
+            state.currentTab = t;
+            document.getElementById('calcView').classList.toggle('hidden', t !== 'calc');
+            document.getElementById('planView').classList.toggle('hidden', t !== 'plan');
+            document.getElementById('tabCalcBtn').className = t === 'calc' ? 'pb-2 px-4 tab-active' : 'pb-2 px-4 text-slate-400';
+            document.getElementById('tabPlanBtn').className = t === 'plan' ? 'pb-2 px-4 tab-active' : 'pb-2 px-4 text-slate-400';
             calculate();
         }
 
-        function calculate() {
-            const capacity = parseFloat(document.getElementById('capacity').value) || 0;
-            const power = parseFloat(document.getElementById('power').value) || 0;
-            const currentSoc = parseFloat(document.getElementById('currentSoc').value) || 0;
-            const targetSoc = parseFloat(document.getElementById('targetSoc').value) || 0;
-            const price = parseFloat(document.getElementById('priceInput').value) || 0;
-            const efficiency = 0.90;
-
-            if (targetSoc > currentSoc && power > 0) {
-                const energyNeeded = ((targetSoc - currentSoc) / 100) * capacity;
-                const hoursDecimal = energyNeeded / (power * efficiency);
-                finalCostEstimate = energyNeeded * price;
-
-                if (!isTimerRunning) {
-                    totalSecondsRemaining = Math.floor(hoursDecimal * 3600);
-                    originalSecondsNeeded = totalSecondsRemaining;
-                    document.getElementById('cost').innerText = `₪ ${finalCostEstimate.toFixed(2)}`;
-                }
-                
-                const h = Math.floor(totalSecondsRemaining / 3600);
-                const m = Math.floor((totalSecondsRemaining % 3600) / 60);
-                const now = new Date();
-                const end = new Date(now.getTime() + (totalSecondsRemaining * 1000));
-
-                document.getElementById('duration').innerText = `${h}ש' ו-${m}ד'`;
-                document.getElementById('finishTime').innerText = end.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
-            }
+        function setPower(p) { document.getElementById('power').value = p; calculate(); }
+        function setPrice(p) { document.getElementById('kwhPrice').value = p; calculate(); }
+        
+        function updateCarData() {
+            const m = document.getElementById('carModel').value;
+            if (m !== 'custom') document.getElementById('capacity').value = evModels[m];
+            calculate();
         }
 
         function toggleTimer() {
-            if (!isTimerRunning && totalSecondsRemaining > 0) {
-                requestNotificationPermission();
-                isTimerRunning = true;
-                originalSecondsNeeded = totalSecondsRemaining;
-                document.querySelectorAll('.input-style, .quick-btn').forEach(el => el.disabled = true);
-                ['timerContainer', 'progressContainer', 'resetBtn', 'totalCostEstimate'].forEach(id => document.getElementById(id).classList.remove('hidden'));
-                
-                document.getElementById('startBtn').innerText = "טעינה בביצוע...";
-                document.getElementById('startBtn').classList.replace('bg-blue-600', 'bg-blue-900');
-                document.getElementById('costLabel').innerText = "עלות שנצברה";
-                document.getElementById('totalCostEstimate').innerText = `סה"כ לסיום: ₪ ${finalCostEstimate.toFixed(2)}`;
+            const btn = document.getElementById('timerBtn');
+            const inputs = document.querySelectorAll('.lockable');
+            const progressContainer = document.getElementById('progressContainer');
+            const liveStats = document.getElementById('liveStats');
 
-                const capacity = parseFloat(document.getElementById('capacity').value), 
-                      currentSoc = parseFloat(document.getElementById('currentSoc').value), 
-                      targetSoc = parseFloat(document.getElementById('targetSoc').value), 
-                      price = parseFloat(document.getElementById('priceInput').value);
-                const energyToGain = ((targetSoc - currentSoc) / 100) * capacity;
-
-                timerInterval = setInterval(() => {
-                    totalSecondsRemaining--;
-                    const secondsPassed = originalSecondsNeeded - totalSecondsRemaining;
-                    const progressRatio = secondsPassed / originalSecondsNeeded;
-                    const energyGainedSoFar = energyToGain * progressRatio;
-                    
-                    document.getElementById('progressBar').style.width = (progressRatio * 100) + "%";
-                    document.getElementById('progressText').innerText = `טעינה פעילה... ${Math.floor(progressRatio * 100)}%`;
-                    document.getElementById('realtimeEnergy').innerText = `${energyGainedSoFar.toFixed(2)} kWh`;
-                    document.getElementById('cost').innerText = `₪ ${(energyGainedSoFar * price).toFixed(2)}`;
-                    
-                    updateTimerDisplay();
-                    if (totalSecondsRemaining <= 0) {
-                        clearInterval(timerInterval);
-                        notifyCompletion();
-                        resetTimer();
-                    }
-                }, 1000);
+            if (state.timer) {
+                clearInterval(state.timer);
+                state.timer = null;
+                btn.innerText = "התחל מדידה";
+                btn.className = "w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl";
+                inputs.forEach(i => i.disabled = false);
+                progressContainer.classList.add('hidden');
+                liveStats.classList.add('hidden');
+            } else {
+                state.start = Date.now();
+                inputs.forEach(i => i.disabled = true);
+                btn.innerText = "עצור מדידה";
+                btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl";
+                progressContainer.classList.remove('hidden');
+                liveStats.classList.remove('hidden');
+                state.timer = setInterval(updateMeasurement, 1000);
             }
         }
 
-        function updateTimerDisplay() {
-            const h = Math.floor(totalSecondsRemaining / 3600), 
-                  m = Math.floor((totalSecondsRemaining % 3600) / 60), 
-                  s = totalSecondsRemaining % 60;
-            document.getElementById('countdown').innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        function updateMeasurement() {
+            const elapsedSec = (Date.now() - state.start) / 1000;
+            const power = parseFloat(document.getElementById('power').value) || 11;
+            const cap = parseFloat(document.getElementById('capacity').value) || 77;
+            const price = parseFloat(document.getElementById('kwhPrice').value) || 0.625;
+            const currentSoc = parseFloat(document.getElementById('calcCurrent').value);
+            const targetSoc = parseFloat(document.getElementById('calcTarget').value);
+
+            const kwhAdded = (elapsedSec / 3600) * power * 0.9;
+            const costAdded = kwhAdded * price;
+            const pctAdded = (kwhAdded / cap) * 100;
+            const liveSoc = Math.min(targetSoc, currentSoc + pctAdded);
+
+            // Update UI
+            document.getElementById('liveKwh').innerText = kwhAdded.toFixed(2) + " kWh";
+            document.getElementById('liveCost').innerText = "₪" + costAdded.toFixed(2);
+            
+            const progress = ((liveSoc - currentSoc) / (targetSoc - currentSoc)) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').innerText = `מצב סוללה: ${liveSoc.toFixed(1)}%`;
+            
+            if (liveSoc >= targetSoc) toggleTimer(); // Auto-stop at target
         }
 
-        function resetTimer() {
-            clearInterval(timerInterval); 
-            isTimerRunning = false;
-            document.querySelectorAll('.input-style, .quick-btn').forEach(el => el.disabled = false);
-            ['timerContainer', 'progressContainer', 'resetBtn', 'totalCostEstimate'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById('startBtn').innerText = "התחל טעינה";
-            document.getElementById('startBtn').classList.replace('bg-blue-900', 'bg-blue-600');
-            document.getElementById('costLabel').innerText = "עלות משוערת";
-            calculate();
-        }
+        function calculate() {
+            const cap = parseFloat(document.getElementById('capacity').value) || 77;
+            const pwr = parseFloat(document.getElementById('power').value) || 11;
+            const prc = parseFloat(document.getElementById('kwhPrice').value) || 0.625;
+            const eff = 0.9;
 
+            let cur = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcCurrent' : 'planCurrent').value) || 0;
+            let target = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcTarget' : 'planTarget').value) || 80;
+
+            const energy = Math.max(0, ((target - cur) / 100) * cap);
+            const hours = energy / (pwr * eff);
+
+            document.getElementById('estCost').innerText = `₪${(energy * prc).toFixed(2)}`;
+            document.getElementById('estRange').innerText = `+${Math.round(energy / 0.185)} ק"מ`;
+
+            if (state.currentTab === 'calc') {
+                const finish = new Date(Date.now() + hours * 3600000);
+                document.getElementById('calcMainDisplay').innerText = finish.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+            } else {
+                const [h, m] = document.getElementById('departureTime').value.split(':');
+                let dep = new Date(); dep.setHours(h, m, 0);
+                if (dep < new Date()) dep.setDate(dep.getDate()+1);
+                const start = new Date(dep.getTime() - hours * 3600000);
+                document.getElementById('planStartTime').innerText = start.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+            }
+        }
         calculate();
     </script>
 </body>
