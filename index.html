@@ -11,6 +11,8 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; }
         .input-style:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+        /* Commit 2: Styling for disabled inputs */
+        .input-style:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
         .accent-text { color: #38bdf8; }
         .pulse { animation: pulse-animation 2s infinite; }
         @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -19,16 +21,16 @@
 <body class="p-4 md:p-8 min-h-screen flex flex-col items-center">
 
     <header class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold mb-2 italic">EV<span class="accent-text">Charge</span> IL</h1>
+        <h1 class="text-3xl font-extrabold mb-2 italic text-white">EV<span class="accent-text">Charge</span> IL</h1>
         <p class="text-slate-400 text-sm">מחשבון טעינה חכם לקהילת ה-EV בישראל</p>
     </header>
 
     <main class="glass p-6 rounded-3xl w-full max-w-lg shadow-2xl">
-        <div class="grid grid-cols-1 gap-6">
+        <div id="inputSection" class="grid grid-cols-1 gap-6">
             
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-400">בחר דגם רכב</label>
-                <select id="carModel" class="input-style" onchange="updateCarData()">
+                <select id="carModel" class="input-style" onchange="handleCarChange()">
                     <option value="vw_id4">VW ID.4 (77kWh net)</option>
                     <option value="byd_atto3">BYD Atto 3 (60.5kWh)</option>
                     <option value="tesla_m3_rwd">Tesla Model 3 RWD (57.5kWh)</option>
@@ -61,6 +63,10 @@
                 </div>
             </div>
 
+            <div>
+                <label class="block text-xs font-bold mb-2 text-slate-400">תעריף לקוט״ש (₪)</label>
+                <input type="number" id="priceInput" class="input-style" value="0.625" step="0.01" oninput="calculate()">
+            </div>
         </div>
 
         <div class="mt-10 pt-8 border-t border-slate-700 space-y-8">
@@ -84,18 +90,18 @@
                 <button id="startBtn" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-900/20">
                     התחל טעינה
                 </button>
-                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition">
+                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 font-bold py-3 px-6 rounded-xl transition border border-red-600/30">
                     עצור
                 </button>
             </div>
 
             <div class="bg-slate-800/50 p-4 rounded-2xl flex justify-between items-center">
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase">עלות משוערת (ביתית)</p>
+                    <p class="text-xs text-slate-400 font-bold uppercase">עלות משוערת</p>
                     <p id="cost" class="text-xl font-bold text-green-400">₪ 0.00</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] text-slate-500 italic">לפי 62.5 אג' לקוט"ש</p>
+                    <p id="priceLabel" class="text-[10px] text-slate-500 italic uppercase tracking-tighter">חישוב לפי תעריף מוזן</p>
                 </div>
             </div>
         </div>
@@ -118,6 +124,22 @@
         let timerInterval;
         let totalSecondsRemaining = 0;
         let isTimerRunning = false;
+        let lastSelectedModel = "vw_id4";
+
+        // Commit 3: Safe car model switching
+        function handleCarChange() {
+            const currentModel = document.getElementById('carModel').value;
+            if (isTimerRunning) {
+                const confirmChange = confirm("שינוי סוג הרכב יאפס את המדידה הנוכחית. האם להמשיך?");
+                if (!confirmChange) {
+                    document.getElementById('carModel').value = lastSelectedModel;
+                    return;
+                }
+                resetTimer();
+            }
+            lastSelectedModel = currentModel;
+            updateCarData();
+        }
 
         function updateCarData() {
             const model = document.getElementById('carModel').value;
@@ -128,31 +150,31 @@
         }
 
         function calculate() {
-            if (isTimerRunning) return; // לא מעדכנים תוך כדי טיימר פעיל
-
             const capacity = parseFloat(document.getElementById('capacity').value) || 0;
             const power = parseFloat(document.getElementById('power').value) || 0;
             const currentSoc = parseFloat(document.getElementById('currentSoc').value) || 0;
             const targetSoc = parseFloat(document.getElementById('targetSoc').value) || 0;
+            const price = parseFloat(document.getElementById('priceInput').value) || 0;
             
             const efficiency = 0.90;
-            const electricityPrice = 0.625;
 
             if (targetSoc > currentSoc && power > 0) {
                 const energyNeeded = ((targetSoc - currentSoc) / 100) * capacity;
                 const hoursDecimal = energyNeeded / (power * efficiency);
                 
-                totalSecondsRemaining = Math.floor(hoursDecimal * 3600);
+                if (!isTimerRunning) {
+                    totalSecondsRemaining = Math.floor(hoursDecimal * 3600);
+                }
                 
                 const h = Math.floor(hoursDecimal);
                 const m = Math.round((hoursDecimal - h) * 60);
                 
                 const now = new Date();
-                const end = new Date(now.getTime() + hoursDecimal * 60 * 60 * 1000);
+                const end = new Date(now.getTime() + (totalSecondsRemaining * 1000));
 
                 document.getElementById('duration').innerText = `${h}ש' ו-${m}ד'`;
                 document.getElementById('finishTime').innerText = end.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
-                document.getElementById('cost').innerText = `₪ ${(energyNeeded * electricityPrice).toFixed(2)}`;
+                document.getElementById('cost').innerText = `₪ ${(energyNeeded * price).toFixed(2)}`;
             } else {
                 document.getElementById('duration').innerText = "00:00";
                 document.getElementById('finishTime').innerText = "--:--";
@@ -160,11 +182,19 @@
             }
         }
 
+        // Commit 2: Helper to lock/unlock UI
+        function toggleInputs(disabled) {
+            const inputs = document.querySelectorAll('.input-style');
+            inputs.forEach(input => input.disabled = disabled);
+        }
+
         function toggleTimer() {
             if (!isTimerRunning) {
                 if (totalSecondsRemaining <= 0) return;
                 
                 isTimerRunning = true;
+                toggleInputs(true);
+                
                 document.getElementById('timerContainer').classList.remove('hidden');
                 document.getElementById('startBtn').innerText = "טעינה פעילה...";
                 document.getElementById('startBtn').classList.replace('bg-blue-600', 'bg-blue-900');
@@ -195,6 +225,8 @@
         function resetTimer() {
             clearInterval(timerInterval);
             isTimerRunning = false;
+            toggleInputs(false);
+            
             document.getElementById('timerContainer').classList.add('hidden');
             document.getElementById('startBtn').innerText = "התחל טעינה";
             document.getElementById('startBtn').classList.replace('bg-blue-900', 'bg-blue-600');
