@@ -1,2 +1,44 @@
-# ev-calculator
-EV Charge IL is a sleek, lightweight web-based utility designed for electric vehicle owners in Israel. It provides a reliable alternative to limited dealership apps by offering precise charging time estimates and cost calculations.
+import os
+
+# Content for the README.md file
+readme_content = """# EV Charge IL - Smart Charging Calculator 🚗⚡
+
+**EV Charge IL** הוא כלי עזר מבוסס ווב, קליל ומעוצב, שנועד עבור בעלי רכבים חשמליים בישראל. הכלי נולד מתוך הצורך במענה מדויק ומהיר יותר מזה שמספקות אפליקציות היבואן השונות, ומאפשר לדעת בדיוק מתי הרכב יהיה מוכן לנסיעה וכמה זה יעלה לכם.
+
+## 🚀 תכונות עיקריות (Key Features)
+
+* **הערכות זמן מדויקות:** החישוב מתבצע לפי קיבולת ה-**Net** האמיתית של הסוללה (האנרגיה הזמינה לשימוש) ולא לפי נתוני ה"ברוטו" השיווקיים.
+* **התאמה לשוק הישראלי:** הגדרות מוכנות מראש (Presets) לדגמים הפופולריים ביותר בישראל: **VW ID.4, BYD Atto 3, Tesla Model 3/Y, Geely Geometry C, Hyundai Ioniq 5** ועוד.
+* **חישוב אובדני אנרגיה:** הלוגיקה כוללת מקדם יעילות של 90% הלוקח בחשבון איבודי חום והמרת זרם (AC to DC) בטעינה ביתית.
+* **מחשבון עלות:** הערכה כספית של עלות סשן הטעינה לפי תעריף החשמל הביתי המעודכן בישראל (נכון ל-2024).
+* **Mobile-First Design:** ממשק משתמש מודרני (Glassmorphism) ורספונסיבי, המותאם לשימוש מהיר מהסמארטפון.
+
+## 🛠 הטכנולוגיה (Tech Stack)
+
+הפרויקט בנוי בצורה פשוטה ויעילה כדי להבטיח מהירות מקסימלית ופרטיות (כל החישובים מתבצעים בצד הלקוח):
+- **HTML5 & Vanilla JavaScript**
+- **Tailwind CSS** (עיצוב מודרני דרך CDN)
+- **Google Fonts** (פונט Assistant להצגת עברית נקייה)
+
+## 📖 איך להשתמש?
+
+1.  **הפעלה מקומית:** פשוט הורידו את קובץ ה-`index.html` ופתחו אותו בכל דפדפן.
+2.  **העלאה לרשת:** מומלץ להעלות ל-**GitHub Pages** כדי לקבל כתובת URL אישית וגישה מכל מקום.
+3.  **שימוש בנייד:** פתחו את הלינק בטלפון ובחרו ב-"הוסף למסך הבית" (Add to Home Screen) כדי להשתמש בכלי כאפליקציה לכל דבר.
+
+## 🧮 הלוגיקה מאחורי החישוב
+
+הזמן מחושב לפי הנוסחה הבאה:
+`Energy Needed (kWh) = (Target% - Current%) * Net Capacity`
+`Charging Time (Hours) = Energy Needed / (Charging Power * 0.9 Efficiency)`
+
+---
+
+**פותח באהבה עבור קהילת ה-EV בישראל.** *הערה: הנתונים הינם הערכה בלבד ומושפעים מטמפרטורה חיצונית, בריאות הסוללה (SoH) ואיזון תאים בסיום הטעינה.*
+"""
+
+# Writing the content to a file
+with open("README.md", "w", encoding="utf-8") as f:
+    f.write(readme_content)
+
+print("README.md file created successfully.")
