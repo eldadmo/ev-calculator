@@ -12,6 +12,8 @@
         .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; }
         .input-style:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
         .accent-text { color: #38bdf8; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen flex flex-col items-center">
@@ -73,6 +75,20 @@
                 </div>
             </div>
 
+            <div id="timerContainer" class="hidden bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl text-center">
+                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-1 pulse">טעינה בביצוע...</p>
+                <p id="countdown" class="text-2xl font-mono font-bold text-blue-300">00:00:00</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="startBtn" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-blue-900/20">
+                    התחל טעינה
+                </button>
+                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-xl transition">
+                    עצור
+                </button>
+            </div>
+
             <div class="bg-slate-800/50 p-4 rounded-2xl flex justify-between items-center">
                 <div>
                     <p class="text-xs text-slate-400 font-bold uppercase">עלות משוערת (ביתית)</p>
@@ -99,6 +115,10 @@
             "geely_460": 70
         };
 
+        let timerInterval;
+        let totalSecondsRemaining = 0;
+        let isTimerRunning = false;
+
         function updateCarData() {
             const model = document.getElementById('carModel').value;
             if (model !== 'custom') {
@@ -108,37 +128,78 @@
         }
 
         function calculate() {
+            if (isTimerRunning) return; // לא מעדכנים תוך כדי טיימר פעיל
+
             const capacity = parseFloat(document.getElementById('capacity').value) || 0;
             const power = parseFloat(document.getElementById('power').value) || 0;
             const currentSoc = parseFloat(document.getElementById('currentSoc').value) || 0;
             const targetSoc = parseFloat(document.getElementById('targetSoc').value) || 0;
             
-            const efficiency = 0.90; // איבודים ממוצעים
-            const electricityPrice = 0.625; // מחיר קוט"ש ביתי כולל מע"מ
+            const efficiency = 0.90;
+            const electricityPrice = 0.625;
 
             if (targetSoc > currentSoc && power > 0) {
                 const energyNeeded = ((targetSoc - currentSoc) / 100) * capacity;
                 const hoursDecimal = energyNeeded / (power * efficiency);
                 
-                // חישוב זמנים
+                totalSecondsRemaining = Math.floor(hoursDecimal * 3600);
+                
                 const h = Math.floor(hoursDecimal);
                 const m = Math.round((hoursDecimal - h) * 60);
                 
                 const now = new Date();
                 const end = new Date(now.getTime() + hoursDecimal * 60 * 60 * 1000);
 
-                // חישוב עלות
-                const totalCost = energyNeeded * electricityPrice;
-
-                // עדכון UI
                 document.getElementById('duration').innerText = `${h}ש' ו-${m}ד'`;
                 document.getElementById('finishTime').innerText = end.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
-                document.getElementById('cost').innerText = `₪ ${totalCost.toFixed(2)}`;
+                document.getElementById('cost').innerText = `₪ ${(energyNeeded * electricityPrice).toFixed(2)}`;
             } else {
                 document.getElementById('duration').innerText = "00:00";
                 document.getElementById('finishTime').innerText = "--:--";
                 document.getElementById('cost').innerText = "₪ 0.00";
             }
+        }
+
+        function toggleTimer() {
+            if (!isTimerRunning) {
+                if (totalSecondsRemaining <= 0) return;
+                
+                isTimerRunning = true;
+                document.getElementById('timerContainer').classList.remove('hidden');
+                document.getElementById('startBtn').innerText = "טעינה פעילה...";
+                document.getElementById('startBtn').classList.replace('bg-blue-600', 'bg-blue-900');
+                document.getElementById('resetBtn').classList.remove('hidden');
+                
+                timerInterval = setInterval(() => {
+                    totalSecondsRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (totalSecondsRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("הטעינה הסתיימה! (לפי הערכה)");
+                        resetTimer();
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const h = Math.floor(totalSecondsRemaining / 3600);
+            const m = Math.floor((totalSecondsRemaining % 3600) / 60);
+            const s = totalSecondsRemaining % 60;
+            
+            document.getElementById('countdown').innerText = 
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            document.getElementById('timerContainer').classList.add('hidden');
+            document.getElementById('startBtn').innerText = "התחל טעינה";
+            document.getElementById('startBtn').classList.replace('bg-blue-900', 'bg-blue-600');
+            document.getElementById('resetBtn').classList.add('hidden');
+            calculate();
         }
 
         calculate();
