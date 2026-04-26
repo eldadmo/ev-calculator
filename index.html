@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EV Control Pro | Premium Edition</title>
+    <title>EV Control Pro | Tracking Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ev-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Assistant', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 10px; width: 100%; color: white; text-align: center; transition: all 0.3s; }
-        .input-style:disabled { opacity: 0.5; cursor: not-allowed; background: #1e293b; }
+        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 10px; width: 100%; color: white; text-align: center; font-weight: bold; }
+        .input-style:disabled { opacity: 0.4; cursor: not-allowed; }
         .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 800; }
-        .btn-preset { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px 6px; font-size: 0.7rem; color: #94a3b8; flex: 1; }
-        .progress-bg { background: rgba(51, 65, 85, 0.5); border-radius: 20px; height: 12px; overflow: hidden; }
-        .progress-fill { background: linear-gradient(90deg, #38bdf8, #22c55e); height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
+        .btn-preset { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px; font-size: 0.7rem; color: #94a3b8; flex: 1; }
+        .progress-bg { background: rgba(51, 65, 85, 0.5); border-radius: 20px; height: 10px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #38bdf8, #22c55e); height: 100%; width: 0%; transition: width 0.5s ease; }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center">
 
     <header class="text-center mb-4">
-        <h1 class="text-2xl font-extrabold italic tracking-tighter text-white">EV<span class="text-sky-400">CONTROL</span> PRO</h1>
+        <h1 class="text-2xl font-extrabold italic tracking-tighter text-white uppercase">EV<span class="text-sky-400">Control</span> Pro</h1>
     </header>
 
     <div class="flex space-x-4 space-x-reverse mb-6 w-full max-w-lg justify-center border-b border-slate-700">
@@ -30,33 +31,39 @@
 
     <main class="glass p-6 rounded-3xl w-full max-w-lg shadow-2xl">
         
-        <section class="grid grid-cols-2 gap-4 mb-6 border-b border-slate-700 pb-6">
-            <div class="col-span-2">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">דגם רכב וקיבולת (kWh)</label>
-                <div class="flex gap-2">
-                    <select id="carModel" class="input-style w-2/3 lockable" onchange="updateCarData()">
-                        <option value="vw_id4">VW ID.4 (77kWh)</option>
-                        <option value="byd_atto3">BYD Atto 3 (60.5kWh)</option>
-                        <option value="custom">אחר...</option>
-                    </select>
-                    <input type="number" id="capacity" class="input-style w-1/3 lockable" value="77" oninput="calculate()">
-                </div>
+        <section class="grid grid-cols-2 gap-3 mb-6 border-b border-slate-700 pb-6">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">מותג</label>
+                <select id="brandSelect" class="input-style lockable" onchange="initModels()"></select>
             </div>
-            
-            <div class="col-span-1">
-                <label class="block text-[10px] font-bold text-slate-500 mb-1">הספק עמדה (kW)</label>
-                <input type="number" id="power" class="input-style lockable" value="11" oninput="calculate()">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">דגם</label>
+                <select id="modelSelect" class="input-style lockable" onchange="updateCapacity()"></select>
+            </div>
+            <div class="col-span-2 mt-2">
+                <div class="flex gap-4">
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">קיבולת נטו (kWh)</label>
+                        <input type="number" id="capacity" class="input-style lockable" value="77" oninput="calculate()">
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1 italic">הספק עמדה (kW)</label>
+                        <input type="number" id="power" class="input-style lockable" value="11" oninput="calculate()">
+                    </div>
+                </div>
                 <div class="flex gap-1 mt-2">
-                    <button class="btn-preset lockable" onclick="setPower(11)">ביתי</button>
-                    <button class="btn-preset lockable" onclick="setPower(50)">מהירה</button>
-                    <button class="btn-preset lockable" onclick="setPower(175)">אולטרה</button>
+                    <button class="btn-preset lockable" onclick="setPower(11)">ביתי (11)</button>
+                    <button class="btn-preset lockable" onclick="setPower(50)">מהירה (50)</button>
+                    <button class="btn-preset lockable" onclick="setPower(175)">אולטרה (175)</button>
                 </div>
             </div>
+        </section>
 
-            <div class="col-span-1">
-                <label class="block text-[10px] font-bold text-slate-500 mb-1">תעריף קוט"ש (₪)</label>
-                <input type="number" id="kwhPrice" class="input-style lockable" value="0.625" step="0.001" oninput="calculate()">
-                <div class="flex gap-1 mt-2">
+        <section class="mb-6 border-b border-slate-700 pb-6">
+            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase italic">תעריף חשמל (₪)</label>
+            <div class="flex gap-3">
+                <input type="number" id="kwhPrice" class="input-style lockable w-1/2" value="0.625" step="0.001" oninput="calculate()">
+                <div class="flex gap-1 w-1/2">
                     <button class="btn-preset lockable" onclick="setPrice(0.625)">בית</button>
                     <button class="btn-preset lockable" onclick="setPrice(2.2)">חוץ</button>
                 </div>
@@ -66,78 +73,104 @@
         <div id="calcView" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-sky-400 mb-2 text-center">אחוז נוכחי</label>
-                    <input type="number" id="calcCurrent" class="input-style lockable border-sky-900" value="20" oninput="calculate()">
+                    <label class="block text-xs font-bold text-sky-400 mb-1 text-center italic">אחוז נוכחי</label>
+                    <input type="number" id="calcCurrent" class="input-style lockable" value="20" oninput="calculate()">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-green-400 mb-2 text-center">יעד טעינה</label>
-                    <input type="number" id="calcTarget" class="input-style lockable border-green-900" value="80" oninput="calculate()">
+                    <label class="block text-xs font-bold text-green-400 mb-1 text-center italic">יעד טעינה</label>
+                    <input type="number" id="calcTarget" class="input-style lockable" value="80" oninput="calculate()">
                 </div>
             </div>
 
-            <div id="measurementBox" class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-center relative">
-                <p id="calcLabel" class="text-[10px] text-slate-500 uppercase tracking-widest">זמן טעינה נותר</p>
-                <p id="calcMainDisplay" class="text-5xl font-black text-white my-1">--:--</p>
-                
+            <div id="displayArea" class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-center">
+                <p id="mainLabel" class="text-[10px] text-slate-500 uppercase tracking-widest">זמן טעינה נותר (HH:MM)</p>
+                <p id="mainDisplay" class="text-6xl font-black text-white my-1 tracking-tighter">--:--</p>
+                <p id="subDisplay" class="text-xs text-sky-400 font-bold uppercase"></p>
                 <div id="progressContainer" class="px-8 mt-4 hidden">
-                    <div class="progress-bg">
-                        <div id="progressBar" class="progress-fill"></div>
-                    </div>
+                    <div class="progress-bg"><div id="progressBar" class="progress-fill"></div></div>
                     <p id="progressText" class="text-[10px] text-sky-400 mt-2 font-bold uppercase"></p>
                 </div>
             </div>
 
-            <button id="timerBtn" onclick="toggleTimer()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all">התחל מדידה</button>
-            
+            <button id="timerBtn" onclick="toggleTimer()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase">התחל מדידה</button>
             <div id="liveStats" class="hidden grid grid-cols-2 gap-2 p-4 bg-slate-800/80 rounded-xl border border-slate-700">
                 <div class="text-center border-l border-slate-700">
-                    <p class="text-[9px] text-slate-500 uppercase">עלות בפועל</p>
+                    <p class="text-[9px] text-slate-500">עלות בפועל</p>
                     <p id="liveCost" class="text-xl font-bold text-green-400">₪0.00</p>
                 </div>
                 <div class="text-center">
-                    <p class="text-[9px] text-slate-500 uppercase">אנרגיה שנכנסה</p>
+                    <p class="text-[9px] text-slate-500">אנרגיה שנכנסה</p>
                     <p id="liveKwh" class="text-xl font-bold text-sky-300">0.00 kWh</p>
                 </div>
             </div>
         </div>
 
         <div id="planView" class="hidden space-y-6">
-            <div class="grid grid-cols-3 gap-2">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-1">נוכחי (%)</label>
-                    <input type="number" id="planCurrent" class="input-style" value="20" oninput="calculate()">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-1">יעד (%)</label>
-                    <input type="number" id="planTarget" class="input-style" value="80" oninput="calculate()">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 mb-1">שעת יציאה</label>
-                    <input type="time" id="departureTime" class="input-style" value="07:30" oninput="calculate()">
-                </div>
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div><label class="text-[10px] font-bold text-slate-500 italic">נוכחי (%)</label><input type="number" id="planCurrent" class="input-style" value="20" oninput="calculate()"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 italic">יעד (%)</label><input type="number" id="planTarget" class="input-style" value="80" oninput="calculate()"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 italic">יציאה</label><input type="time" id="departureTime" class="input-style" value="07:30" oninput="calculate()"></div>
             </div>
-            <div class="text-center py-8 bg-sky-500/10 rounded-2xl border border-sky-500/30">
-                <p class="text-xs text-sky-300 font-bold uppercase tracking-widest">שעת חיבור מומלצת</p>
-                <p id="planStartTime" class="text-5xl font-black text-white mt-1">--:--</p>
+            <div class="py-8 bg-sky-500/10 rounded-2xl border border-sky-500/30 text-center">
+                <p class="text-xs text-sky-300 font-bold uppercase tracking-widest">חיבור מומלץ ב-</p>
+                <p id="planStartTime" class="text-6xl font-black text-white mt-1 tracking-tighter">--:--</p>
                 <p id="planStatus" class="text-[10px] mt-3 italic"></p>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3 mt-8 border-t border-slate-700 pt-6">
             <div class="card-stat text-center">
-                <p class="text-[10px] text-slate-500 uppercase font-bold">עלות כוללת (הערכה)</p>
-                <p id="estCost" class="text-xl font-black text-green-400">₪0.00</p>
+                <p class="text-[10px] text-slate-500 font-bold">עלות (הערכה)</p>
+                <p id="sumCost" class="text-xl font-black text-green-400">₪0.00</p>
             </div>
             <div class="card-stat text-center">
-                <p class="text-[10px] text-slate-500 uppercase font-bold">תוספת טווח (ק"מ)</p>
-                <p id="estRange" class="text-xl font-black text-sky-300">+0 ק"מ</p>
+                <p class="text-[10px] text-slate-500 font-bold">תוספת טווח</p>
+                <p id="sumRange" class="text-xl font-black text-sky-300">+0 ק"מ</p>
             </div>
         </div>
+
+        <footer class="mt-10 w-full flex justify-center border-t border-slate-800/50 pt-8">
+            <a href="https://www.paypal.me/eldadmichaeli" target="_blank" 
+               class="group flex items-center gap-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 hover:border-sky-500/50 transition-all duration-300 px-5 py-2.5 rounded-xl">
+                <svg class="w-5 h-5 fill-sky-400 opacity-80 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20.067 8.478c.492.476.752 1.06.78 1.752.028.692-.146 1.412-.523 2.16l-.033.064c-.38.743-.88 1.258-1.503 1.543-.623.285-1.396.34-2.318.163-.092-.018-.186-.041-.28-.069l-.116-.035-1.127 5.12c-.04.183-.2.318-.387.318h-2.512a.39.39 0 0 1-.379-.481l1.114-5.066-.01.002c-.083.018-.17.033-.257.045l-.105.014c-.66.084-1.298.053-1.913-.095l-.104-.025-1.344 6.11c-.04.183-.2.318-.387.318H6.5a.39.39 0 0 1-.379-.481L8.74 5.922a.39.39 0 0 1 .379-.318h6.115c1.022 0 1.868.12 2.536.359.668.238 1.183.585 1.547 1.039.364.455.581.947.65 1.476z"/>
+                </svg>
+                <p class="text-slate-300 text-sm font-medium group-hover:text-sky-400 transition-colors italic">פרגן לאלדד בקפה</p>
+            </a>
+        </footer>
     </main>
 
     <script>
         let state = { currentTab: 'calc', timer: null, start: null };
-        const evModels = { "vw_id4": 77, "byd_atto3": 60.5 };
+
+        function initBrands() {
+            const bSel = document.getElementById('brandSelect');
+            bSel.innerHTML = '';
+            for (let b in evDb) {
+                let opt = new Option(evDb[b].label, b);
+                if(b === 'vw') opt.selected = true;
+                bSel.add(opt);
+            }
+            initModels();
+        }
+
+        function initModels() {
+            const b = document.getElementById('brandSelect').value;
+            const mSel = document.getElementById('modelSelect');
+            mSel.innerHTML = '';
+            for (let m in evDb[b].models) {
+                mSel.add(new Option(evDb[b].models[m][0], m));
+            }
+            updateCapacity();
+        }
+
+        function updateCapacity() {
+            const b = document.getElementById('brandSelect').value;
+            const m = document.getElementById('modelSelect').value;
+            const cap = evDb[b].models[m][1];
+            if (cap > 0) document.getElementById('capacity').value = cap;
+            calculate();
+        }
 
         function switchTab(t) {
             state.currentTab = t;
@@ -150,89 +183,90 @@
 
         function setPower(p) { document.getElementById('power').value = p; calculate(); }
         function setPrice(p) { document.getElementById('kwhPrice').value = p; calculate(); }
-        
-        function updateCarData() {
-            const m = document.getElementById('carModel').value;
-            if (m !== 'custom') document.getElementById('capacity').value = evModels[m];
-            calculate();
-        }
 
         function toggleTimer() {
             const btn = document.getElementById('timerBtn');
-            const inputs = document.querySelectorAll('.lockable');
-            const progressContainer = document.getElementById('progressContainer');
-            const liveStats = document.getElementById('liveStats');
-
+            const locks = document.querySelectorAll('.lockable');
+            const label = document.getElementById('mainLabel');
+            
             if (state.timer) {
-                clearInterval(state.timer);
-                state.timer = null;
-                btn.innerText = "התחל מדידה";
-                btn.className = "w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl";
-                inputs.forEach(i => i.disabled = false);
-                progressContainer.classList.add('hidden');
-                liveStats.classList.add('hidden');
+                clearInterval(state.timer); state.timer = null;
+                btn.innerText = "התחל מדידה"; btn.className = "w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg";
+                locks.forEach(i => i.disabled = false);
+                document.getElementById('progressContainer').classList.add('hidden');
+                document.getElementById('liveStats').classList.add('hidden');
+                label.innerText = "זמן טעינה נותר (HH:MM)";
+                calculate();
             } else {
                 state.start = Date.now();
-                inputs.forEach(i => i.disabled = true);
-                btn.innerText = "עצור מדידה";
-                btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl";
-                progressContainer.classList.remove('hidden');
-                liveStats.classList.remove('hidden');
+                locks.forEach(i => i.disabled = true);
+                btn.innerText = "עצור מדידה"; btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl shadow-lg";
+                document.getElementById('progressContainer').classList.remove('hidden');
+                document.getElementById('liveStats').classList.remove('hidden');
+                label.innerText = "זמן שחלף (HH:MM:SS)";
                 state.timer = setInterval(updateMeasurement, 1000);
             }
         }
 
         function updateMeasurement() {
-            const elapsedSec = (Date.now() - state.start) / 1000;
-            const power = parseFloat(document.getElementById('power').value) || 11;
+            const elapsed = (Date.now() - state.start) / 1000;
+            const pwr = parseFloat(document.getElementById('power').value) || 11;
             const cap = parseFloat(document.getElementById('capacity').value) || 77;
-            const price = parseFloat(document.getElementById('kwhPrice').value) || 0.625;
-            const currentSoc = parseFloat(document.getElementById('calcCurrent').value);
-            const targetSoc = parseFloat(document.getElementById('calcTarget').value);
+            const curSoc = parseFloat(document.getElementById('calcCurrent').value);
+            const tarSoc = parseFloat(document.getElementById('calcTarget').value);
+            const price = parseFloat(document.getElementById('kwhPrice').value);
 
-            const kwhAdded = (elapsedSec / 3600) * power * 0.9;
-            const costAdded = kwhAdded * price;
-            const pctAdded = (kwhAdded / cap) * 100;
-            const liveSoc = Math.min(targetSoc, currentSoc + pctAdded);
+            // 1. זמן שחלף (השעון הגדול)
+            const h = Math.floor(elapsed / 3600).toString().padStart(2,'0');
+            const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2,'0');
+            const s = Math.floor(elapsed % 60).toString().padStart(2,'0');
+            document.getElementById('mainDisplay').innerText = `${h}:${m}:${s}`;
 
-            // Update UI
-            document.getElementById('liveKwh').innerText = kwhAdded.toFixed(2) + " kWh";
-            document.getElementById('liveCost').innerText = "₪" + costAdded.toFixed(2);
+            // 2. חישובי אנרגיה ועלות
+            const kwhIn = (elapsed / 3600) * pwr * 0.9;
+            const liveSoc = Math.min(tarSoc, curSoc + (kwhIn/cap)*100);
             
-            const progress = ((liveSoc - currentSoc) / (targetSoc - currentSoc)) * 100;
-            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('liveKwh').innerText = kwhIn.toFixed(2) + " kWh";
+            document.getElementById('liveCost').innerText = "₪" + (kwhIn * price).toFixed(2);
+            document.getElementById('progressBar').style.width = `${((liveSoc-curSoc)/(tarSoc-curSoc))*100}%`;
             document.getElementById('progressText').innerText = `מצב סוללה: ${liveSoc.toFixed(1)}%`;
             
-            if (liveSoc >= targetSoc) toggleTimer(); // Auto-stop at target
+            // 3. סיום משוער (השורה הקטנה למטה)
+            const remHrs = (((tarSoc - liveSoc)/100)*cap) / (pwr * 0.9);
+            const finish = new Date(Date.now() + remHrs * 3600000);
+            document.getElementById('subDisplay').innerText = `סיום משוער ב: ${finish.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})}`;
         }
 
         function calculate() {
             const cap = parseFloat(document.getElementById('capacity').value) || 77;
             const pwr = parseFloat(document.getElementById('power').value) || 11;
             const prc = parseFloat(document.getElementById('kwhPrice').value) || 0.625;
-            const eff = 0.9;
-
+            
             let cur = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcCurrent' : 'planCurrent').value) || 0;
-            let target = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcTarget' : 'planTarget').value) || 80;
+            let tar = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcTarget' : 'planTarget').value) || 80;
 
-            const energy = Math.max(0, ((target - cur) / 100) * cap);
-            const hours = energy / (pwr * eff);
+            const energy = Math.max(0, ((tar - cur) / 100) * cap);
+            const hours = energy / (pwr * 0.9);
 
-            document.getElementById('estCost').innerText = `₪${(energy * prc).toFixed(2)}`;
-            document.getElementById('estRange').innerText = `+${Math.round(energy / 0.185)} ק"מ`;
+            document.getElementById('sumCost').innerText = `₪${(energy * prc).toFixed(2)}`;
+            document.getElementById('sumRange').innerText = `+${Math.round(energy / 0.185)} ק"מ`;
 
-            if (state.currentTab === 'calc') {
-                const finish = new Date(Date.now() + hours * 3600000);
-                document.getElementById('calcMainDisplay').innerText = finish.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
-            } else {
+            if (state.currentTab === 'calc' && !state.timer) {
+                const hh = Math.floor(hours);
+                const mm = Math.round((hours % 1) * 60);
+                document.getElementById('mainDisplay').innerText = `${hh}:${mm.toString().padStart(2,'0')}`;
+                document.getElementById('subDisplay').innerText = `סיום משוער ב: ${new Date(Date.now() + hours*3600000).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})}`;
+            } else if (state.currentTab === 'plan') {
                 const [h, m] = document.getElementById('departureTime').value.split(':');
                 let dep = new Date(); dep.setHours(h, m, 0);
                 if (dep < new Date()) dep.setDate(dep.getDate()+1);
                 const start = new Date(dep.getTime() - hours * 3600000);
                 document.getElementById('planStartTime').innerText = start.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                document.getElementById('planStatus').innerText = start < new Date() ? "⚠️ איחור בלו\"ז" : "זמן תקין לחיבור";
             }
         }
-        calculate();
+
+        window.onload = initBrands;
     </script>
 </body>
 </html>
