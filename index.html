@@ -189,18 +189,30 @@
             const locks = document.querySelectorAll('.lockable');
             const label = document.getElementById('mainLabel');
             
-            if (state.timer) {
-                clearInterval(state.timer); state.timer = null;
-                btn.innerText = "התחל מדידה"; btn.className = "w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg";
+            // בדיקה האם השדות נעולים (אינדיקציה לכך שאנחנו במדידה או בסיום מדידה)
+            const isLocked = document.getElementById('brandSelect').disabled;
+        
+            if (isLocked) {
+                // לוגיקת איפוס (Reset)
+                if (state.timer) {
+                    clearInterval(state.timer);
+                    state.timer = null;
+                }
+                
+                // החזרת ה-UI למצב התחלתי
+                btn.innerText = "התחל מדידה";
+                btn.className = "w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase";
                 locks.forEach(i => i.disabled = false);
                 document.getElementById('progressContainer').classList.add('hidden');
                 document.getElementById('liveStats').classList.add('hidden');
                 label.innerText = "זמן טעינה נותר (HH:MM)";
-                calculate();
+                calculate(); // מחשב מחדש את הערכים הסטטיים
             } else {
+                // לוגיקת התחלה (Start)
                 state.start = Date.now();
                 locks.forEach(i => i.disabled = true);
-                btn.innerText = "עצור מדידה"; btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl shadow-lg";
+                btn.innerText = "עצור מדידה";
+                btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
                 document.getElementById('progressContainer').classList.remove('hidden');
                 document.getElementById('liveStats').classList.remove('hidden');
                 label.innerText = "זמן שחלף (HH:MM:SS)";
@@ -249,10 +261,9 @@
                 state.timer = null;
                 document.getElementById('subDisplay').innerText = "הטעינה הושלמה!";
                 
-                // עדכון נראות הכפתור לסיום
                 const btn = document.getElementById('timerBtn');
                 btn.innerText = "טעינה הסתיימה - אפס";
-                btn.className = "w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
+                btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
             } else {
                 const remHrs = (((tarSoc - liveSoc) / 100) * cap) / (pwr * 0.9);
                 const finish = new Date(Date.now() + remHrs * 3600000);
