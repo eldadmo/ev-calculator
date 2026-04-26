@@ -9,12 +9,12 @@
     <style>
         body { font-family: 'Assistant', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; }
+        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; text-align: center; }
         .input-style:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
         .input-style:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
         .accent-text { color: #38bdf8; }
-        .btn-outline { border: 1px solid #475569; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; transition: all 0.2s; }
-        .btn-outline:hover:not(:disabled) { background: #475569; border-color: #94a3b8; }
+        .btn-outline { border: 1px solid #475569; border-radius: 8px; padding: 4px 10px; font-size: 0.7rem; transition: all 0.2s; color: #94a3b8; }
+        .btn-outline:hover:not(:disabled) { background: #475569; border-color: #94a3b8; color: white; }
         .pulse { animation: pulse-animation 2s infinite; }
         @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .progress-fill { transition: width 1s linear; }
@@ -32,7 +32,7 @@
             
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-slate-400">בחר דגם רכב</label>
-                <select id="carModel" class="input-style" onchange="handleCarChange()">
+                <select id="carModel" class="input-style w-full" onchange="handleCarChange()">
                     <option value="vw_id4">VW ID.4 (77kWh net)</option>
                     <option value="byd_atto3">BYD Atto 3 (60.5kWh)</option>
                     <option value="tesla_m3_rwd">Tesla Model 3 RWD (57.5kWh)</option>
@@ -45,44 +45,45 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400 text-right">סוללה נטו (kWh)</label>
-                    <input type="number" id="capacity" class="input-style text-center" value="77" oninput="calculate()">
+                    <label class="block text-xs font-bold mb-2 text-slate-400">סוללה נטו (kWh)</label>
+                    <input type="number" id="capacity" class="input-style w-full" value="77" oninput="calculate()">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400 text-right">הספק (kW)</label>
-                    <input type="number" id="power" class="input-style text-center" value="11" oninput="calculate()">
-                    <div class="flex gap-1 mt-2 justify-end">
-                        <button onclick="setPower(11)" class="btn-outline text-slate-400 disabled:opacity-30 quick-btn">11</button>
-                        <button onclick="setPower(50)" class="btn-outline text-slate-400 disabled:opacity-30 quick-btn">50</button>
-                        <button onclick="setPower(175)" class="btn-outline text-slate-400 disabled:opacity-30 quick-btn">175</button>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-400">הספק (kW)</label>
+                        <div class="flex gap-1">
+                            <button onclick="setPower(11)" class="btn-outline quick-btn">11</button>
+                            <button onclick="setPower(50)" class="btn-outline quick-btn">50</button>
+                        </div>
                     </div>
+                    <input type="number" id="power" class="input-style w-full" value="11" oninput="calculate()">
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400 text-right">אחוז נוכחי</label>
-                    <input type="number" id="currentSoc" class="input-style text-center" value="20" oninput="calculate()">
+                    <label class="block text-xs font-bold mb-2 text-slate-400">אחוז נוכחי</label>
+                    <input type="number" id="currentSoc" class="input-style w-full" value="20" oninput="calculate()">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold mb-2 text-slate-400 text-right">יעד טעינה</label>
-                    <input type="number" id="targetSoc" class="input-style text-center" value="80" oninput="calculate()">
+                    <label class="block text-xs font-bold mb-2 text-slate-400 text-balance">יעד טעינה</label>
+                    <input type="number" id="targetSoc" class="input-style w-full" value="80" oninput="calculate()">
                 </div>
             </div>
 
             <div>
-                <div class="flex justify-between items-end mb-2">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-xs font-bold text-slate-400">תעריף לקוט״ש (₪)</label>
                     <div class="flex gap-2">
-                        <button onclick="setPrice(0.625)" class="btn-outline text-slate-300 disabled:opacity-30 quick-btn">ביתי</button>
-                        <button onclick="setPrice(2.2)" class="btn-outline text-slate-300 disabled:opacity-30 quick-btn">ציבורי</button>
+                        <button onclick="setPrice(0.625)" class="btn-outline quick-btn">ביתי</button>
+                        <button onclick="setPrice(2.2)" class="btn-outline quick-btn">ציבורי</button>
                     </div>
-                    <label class="block text-xs font-bold text-slate-400">תעריף לקוט״ש (₪)</label>
                 </div>
-                <input type="number" id="priceInput" class="input-style text-center" value="0.625" step="0.01" oninput="calculate()">
+                <input type="number" id="priceInput" class="input-style w-full" value="0.625" step="0.01" oninput="calculate()">
             </div>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-slate-700 space-y-6">
+        <div class="mt-8 pt-6 border-t border-slate-700 space-y-6 text-right">
             <div id="progressContainer" class="hidden space-y-2">
                 <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                     <span id="progressText" class="accent-text pulse">טעינה פעילה... 0%</span>
@@ -112,7 +113,7 @@
                 <button id="startBtn" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition shadow-lg">
                     התחל טעינה
                 </button>
-                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 font-bold py-3 px-6 rounded-xl transition border border-red-600/30">
+                <button id="resetBtn" onclick="resetTimer()" class="hidden bg-red-600/20 hover:bg-red-600/40 text-red-400 font-bold py-3 px-6 rounded-xl transition border border-red-600/30 text-xs">
                     עצור
                 </button>
             </div>
@@ -124,7 +125,7 @@
                     <p id="totalCostEstimate" class="hidden text-[10px] text-slate-500 font-medium">סה"כ לסיום: ₪ 0.00</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-[10px] text-slate-500 italic uppercase tracking-tighter">חישוב לפי תעריף מוזן</p>
+                    <p class="text-[9px] text-slate-500 italic uppercase">חישוב לפי תעריף מוזן</p>
                 </div>
             </div>
 
@@ -161,9 +162,9 @@
             } catch (e) { console.log("Audio play failed"); }
 
             if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("EV Charge IL", { body: "הטעינה הסתיימה! הרכב מוכן לנסיעה.", dir: "rtl" });
+                new Notification("EV Charge IL", { body: "הטעינה הסתיימה!", dir: "rtl" });
             } else {
-                alert("הטעינה הסתיימה! (לפי הערכה)");
+                alert("הטעינה הסתיימה!");
             }
         }
 
@@ -223,10 +224,7 @@
                 isTimerRunning = true;
                 originalSecondsNeeded = totalSecondsRemaining;
                 document.querySelectorAll('.input-style, .quick-btn').forEach(el => el.disabled = true);
-                document.getElementById('timerContainer').classList.remove('hidden');
-                document.getElementById('progressContainer').classList.remove('hidden');
-                document.getElementById('resetBtn').classList.remove('hidden');
-                document.getElementById('totalCostEstimate').classList.remove('hidden');
+                ['timerContainer', 'progressContainer', 'resetBtn', 'totalCostEstimate'].forEach(id => document.getElementById(id).classList.remove('hidden'));
                 
                 document.getElementById('startBtn').innerText = "טעינה בביצוע...";
                 document.getElementById('startBtn').classList.replace('bg-blue-600', 'bg-blue-900');
@@ -271,10 +269,7 @@
             clearInterval(timerInterval); 
             isTimerRunning = false;
             document.querySelectorAll('.input-style, .quick-btn').forEach(el => el.disabled = false);
-            document.getElementById('timerContainer').classList.add('hidden');
-            document.getElementById('progressContainer').classList.add('hidden');
-            document.getElementById('resetBtn').classList.add('hidden');
-            document.getElementById('totalCostEstimate').classList.add('hidden');
+            ['timerContainer', 'progressContainer', 'resetBtn', 'totalCostEstimate'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('startBtn').innerText = "התחל טעינה";
             document.getElementById('startBtn').classList.replace('bg-blue-900', 'bg-blue-600');
             document.getElementById('costLabel').innerText = "עלות משוערת";
