@@ -34,11 +34,11 @@
         <section class="grid grid-cols-2 gap-3 mb-6 border-b border-slate-700 pb-6">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">מותג</label>
-                <select id="brandSelect" class="input-style lockable" onchange="initModels()"></select>
+                <select id="brandSelect" class="input-style lockable" onchange="initModels(); savePreferences();"></select>
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">דגם</label>
-                <select id="modelSelect" class="input-style lockable" onchange="updateCapacity()"></select>
+                <select id="modelSelect" class="input-style lockable" onchange="updateCapacity(); savePreferences();"></select>
             </div>
             <div class="col-span-2 mt-2">
                 <div class="flex gap-4">
@@ -52,9 +52,9 @@
                     </div>
                 </div>
                 <div class="flex gap-1 mt-2">
-                    <button class="btn-preset lockable" onclick="setPower(11)">ביתי (11)</button>
-                    <button class="btn-preset lockable" onclick="setPower(50)">מהירה (50)</button>
-                    <button class="btn-preset lockable" onclick="setPower(175)">אולטרה (175)</button>
+                    <button class="btn-preset lockable" onclick="setPower(11); savePreferences();">ביתי (11)</button>
+                    <button class="btn-preset lockable" onclick="setPower(50); savePreferences();">מהירה (50)</button>
+                    <button class="btn-preset lockable" onclick="setPower(175); savePreferences();">אולטרה (175)</button>
                 </div>
             </div>
         </section>
@@ -64,8 +64,8 @@
             <div class="flex gap-3">
                 <input type="number" id="kwhPrice" class="input-style lockable w-1/2" value="0.625" step="0.001" oninput="calculate()">
                 <div class="flex gap-1 w-1/2">
-                    <button class="btn-preset lockable" onclick="setPrice(0.625)">בית</button>
-                    <button class="btn-preset lockable" onclick="setPrice(2.2)">חוץ</button>
+                    <button class="btn-preset lockable" onclick="setPrice(0.625); savePreferences();">בית</button>
+                    <button class="btn-preset lockable" onclick="setPrice(2.2); savePreferences();">חוץ</button>
                 </div>
             </div>
         </section>
@@ -142,24 +142,53 @@
 
     <script>
         let state = { currentTab: 'calc', timer: null, start: null };
+        function savePreferences() {
+            const prefs = {
+                brand: document.getElementById('brandSelect').value,
+                model: document.getElementById('modelSelect').value,
+                power: document.getElementById('power').value,
+                price: document.getElementById('kwhPrice').value,
+                tab: state.currentTab
+            };
+            localStorage.setItem('ev_pro_prefs', JSON.stringify(prefs));
+        }
 
         function initBrands() {
             const bSel = document.getElementById('brandSelect');
             bSel.innerHTML = '';
+            // Attempt to load saved preferences
+            const savedPrefs = JSON.parse(localStorage.getItem('ev_pro_prefs'));
             for (let b in evDb) {
                 let opt = new Option(evDb[b].label, b);
-                if(b === 'vw') opt.selected = true;
+                // Priority: Saved preference > Default (vw)
+                if (savedPrefs && b === savedPrefs.brand) {
+                    opt.selected = true;
+                } else if (!savedPrefs && b === 'vw') {
+                    opt.selected = true;
+                }
                 bSel.add(opt);
             }
-            initModels();
+            // Load secondary fields if they exist
+            if (savedPrefs) {
+                if (savedPrefs.power) document.getElementById('power').value = savedPrefs.power;
+                if (savedPrefs.price) document.getElementById('kwhPrice').value = savedPrefs.price;
+                if (savedPrefs.tab) switchTab(savedPrefs.tab);
+            }
+            // Initialize models based on selected brand (pass saved model if available)
+            initModels(savedPrefs ? savedPrefs.model : null);
         }
 
-        function initModels() {
+        function initModels(savedModelId = null) {
             const b = document.getElementById('brandSelect').value;
             const mSel = document.getElementById('modelSelect');
             mSel.innerHTML = '';
+            
             for (let m in evDb[b].models) {
-                mSel.add(new Option(evDb[b].models[m][0], m));
+                let opt = new Option(evDb[b].models[m][0], m);
+                if (savedModelId && m === savedModelId) {
+                    opt.selected = true;
+                }
+                mSel.add(opt);
             }
             updateCapacity();
         }
