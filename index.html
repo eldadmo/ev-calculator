@@ -189,18 +189,30 @@
             const locks = document.querySelectorAll('.lockable');
             const label = document.getElementById('mainLabel');
             
-            if (state.timer) {
-                clearInterval(state.timer); state.timer = null;
-                btn.innerText = "התחל מדידה"; btn.className = "w-full bg-sky-500 text-slate-900 font-black py-4 rounded-xl shadow-lg";
+            // בדיקה האם השדות נעולים (אינדיקציה לכך שאנחנו במדידה או בסיום מדידה)
+            const isLocked = document.getElementById('brandSelect').disabled;
+        
+            if (isLocked) {
+                // לוגיקת איפוס (Reset)
+                if (state.timer) {
+                    clearInterval(state.timer);
+                    state.timer = null;
+                }
+                
+                // החזרת ה-UI למצב התחלתי
+                btn.innerText = "התחל מדידה";
+                btn.className = "w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase";
                 locks.forEach(i => i.disabled = false);
                 document.getElementById('progressContainer').classList.add('hidden');
                 document.getElementById('liveStats').classList.add('hidden');
                 label.innerText = "זמן טעינה נותר (HH:MM)";
-                calculate();
+                calculate(); // מחשב מחדש את הערכים הסטטיים
             } else {
+                // לוגיקת התחלה (Start)
                 state.start = Date.now();
                 locks.forEach(i => i.disabled = true);
-                btn.innerText = "עצור מדידה"; btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl shadow-lg";
+                btn.innerText = "עצור מדידה";
+                btn.className = "w-full bg-red-500 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
                 document.getElementById('progressContainer').classList.remove('hidden');
                 document.getElementById('liveStats').classList.remove('hidden');
                 label.innerText = "זמן שחלף (HH:MM:SS)";
@@ -209,32 +221,54 @@
         }
 
         function updateMeasurement() {
-            const elapsed = (Date.now() - state.start) / 1000;
             const pwr = parseFloat(document.getElementById('power').value) || 11;
             const cap = parseFloat(document.getElementById('capacity').value) || 77;
             const curSoc = parseFloat(document.getElementById('calcCurrent').value);
             const tarSoc = parseFloat(document.getElementById('calcTarget').value);
             const price = parseFloat(document.getElementById('kwhPrice').value);
-
-            // 1. זמן שחלף (השעון הגדול)
-            const h = Math.floor(elapsed / 3600).toString().padStart(2,'0');
-            const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2,'0');
-            const s = Math.floor(elapsed % 60).toString().padStart(2,'0');
-            document.getElementById('mainDisplay').innerText = `${h}:${m}:${s}`;
-
-            // 2. חישובי אנרגיה ועלות
-            const kwhIn = (elapsed / 3600) * pwr * 0.9;
-            const liveSoc = Math.min(tarSoc, curSoc + (kwhIn/cap)*100);
+        
+            // חישוב הזמן המקסימלי הדרוש להגיע ליעד (בשניות)
+            const kwhNeeded = ((tarSoc - curSoc) / 100) * cap;
+            const maxSecondsNeeded = (kwhNeeded / (pwr * 0.9)) * 3600;
             
+            let elapsed = (Date.now() - state.start) / 1000;
+            let finished = false;
+        
+            // בדיקה אם הגענו ליעד
+            if (elapsed >= maxSecondsNeeded) {
+                elapsed = maxSecondsNeeded; // קיבוע הזמן על היעד המדויק
+                finished = true;
+            }
+        
+            // 1. זמן שחלף (השעון הגדול)
+            const h = Math.floor(elapsed / 3600).toString().padStart(2, '0');
+            const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('mainDisplay').innerText = `${h}:${m}:${s}`;
+        
+            // 2. חישובי אנרגיה ועלות (מבוסס על הזמן שחלף, מקובע למקסימום)
+            const kwhIn = (elapsed / 3600) * pwr * 0.9;
+            const liveSoc = Math.min(tarSoc, curSoc + (kwhIn / cap) * 100);
+        
             document.getElementById('liveKwh').innerText = kwhIn.toFixed(2) + " kWh";
             document.getElementById('liveCost').innerText = "₪" + (kwhIn * price).toFixed(2);
-            document.getElementById('progressBar').style.width = `${((liveSoc-curSoc)/(tarSoc-curSoc))*100}%`;
+            document.getElementById('progressBar').style.width = `${((liveSoc - curSoc) / (tarSoc - curSoc)) * 100}%`;
             document.getElementById('progressText').innerText = `מצב סוללה: ${liveSoc.toFixed(1)}%`;
-            
-            // 3. סיום משוער (השורה הקטנה למטה)
-            const remHrs = (((tarSoc - liveSoc)/100)*cap) / (pwr * 0.9);
-            const finish = new Date(Date.now() + remHrs * 3600000);
-            document.getElementById('subDisplay').innerText = `סיום משוער ב: ${finish.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})}`;
+        
+            // 3. סיום משוער (או הודעת סיום)
+            if (finished) {
+                clearInterval(state.timer);
+                state.timer = null;
+                document.getElementById('subDisplay').innerText = "הטעינה הושלמה!";
+                
+                const btn = document.getElementById('timerBtn');
+                btn.innerText = "טעינה הסתיימה - אפס";
+                btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
+            } else {
+                const remHrs = (((tarSoc - liveSoc) / 100) * cap) / (pwr * 0.9);
+                const finish = new Date(Date.now() + remHrs * 3600000);
+                document.getElementById('subDisplay').innerText = `סיום משוער ב: ${finish.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`;
+            }
         }
 
         function calculate() {
