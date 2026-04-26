@@ -11,9 +11,10 @@
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 12px; width: 100%; color: white; transition: all 0.2s; }
         .input-style:focus { border-color: #38bdf8; outline: none; box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
-        /* Commit 2: Styling for disabled inputs */
         .input-style:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
         .accent-text { color: #38bdf8; }
+        .btn-outline { border: 1px solid #475569; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; transition: all 0.2s; }
+        .btn-outline:hover:not(:disabled) { background: #475569; border-color: #94a3b8; }
         .pulse { animation: pulse-animation 2s infinite; }
         @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
@@ -64,7 +65,13 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold mb-2 text-slate-400">תעריף לקוט״ש (₪)</label>
+                <div class="flex justify-between items-end mb-2">
+                    <label class="block text-xs font-bold text-slate-400">תעריף לקוט״ש (₪)</label>
+                    <div class="flex gap-2">
+                        <button onclick="setPrice(0.625)" class="btn-outline text-slate-300 disabled:opacity-30 tariff-btn">ביתי (₪0.63)</button>
+                        <button onclick="setPrice(2.2)" class="btn-outline text-slate-300 disabled:opacity-30 tariff-btn">ציבורי (₪2.2)</button>
+                    </div>
+                </div>
                 <input type="number" id="priceInput" class="input-style" value="0.625" step="0.01" oninput="calculate()">
             </div>
         </div>
@@ -126,7 +133,12 @@
         let isTimerRunning = false;
         let lastSelectedModel = "vw_id4";
 
-        // Commit 3: Safe car model switching
+        function setPrice(val) {
+            if (isTimerRunning) return;
+            document.getElementById('priceInput').value = val;
+            calculate();
+        }
+
         function handleCarChange() {
             const currentModel = document.getElementById('carModel').value;
             if (isTimerRunning) {
@@ -182,10 +194,11 @@
             }
         }
 
-        // Commit 2: Helper to lock/unlock UI
         function toggleInputs(disabled) {
             const inputs = document.querySelectorAll('.input-style');
+            const buttons = document.querySelectorAll('.tariff-btn');
             inputs.forEach(input => input.disabled = disabled);
+            buttons.forEach(btn => btn.disabled = disabled);
         }
 
         function toggleTimer() {
