@@ -27,11 +27,12 @@
     <div class="flex space-x-4 space-x-reverse mb-6 w-full max-w-lg justify-center border-b border-slate-700">
         <button id="tabCalcBtn" onclick="switchTab('calc')" class="pb-2 px-4 tab-active">מחשבון ומדידה</button>
         <button id="tabPlanBtn" onclick="switchTab('plan')" class="pb-2 px-4 text-slate-400">מתכנן (Planner)</button>
+        <button id="tabUsageBtn" onclick="switchTab('usage')" class="pb-2 px-4 text-slate-400">חישוב שימוש</button>
     </div>
 
     <main class="glass p-6 rounded-3xl w-full max-w-lg shadow-2xl">
         
-        <section class="grid grid-cols-2 gap-3 mb-6 border-b border-slate-700 pb-6">
+        <section id="vehicleSection" class="grid grid-cols-2 gap-3 mb-6 border-b border-slate-700 pb-6">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">מותג</label>
                 <select id="brandSelect" class="input-style lockable" onchange="initModels(); savePreferences();"></select>
@@ -118,7 +119,18 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mt-8 border-t border-slate-700 pt-6">
+        <div id="usageView" class="hidden space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-sky-400 mb-1 text-center italic">כמות KWH שנצרכה</label>
+                <input type="number" id="usageKwh" class="input-style" value="0" oninput="calculate()">
+            </div>
+            <div class="py-8 bg-sky-500/10 rounded-2xl border border-sky-500/30 text-center">
+                <p class="text-xs text-sky-300 font-bold uppercase tracking-widest">עלות שימוש</p>
+                <p id="usageCost" class="text-6xl font-black text-white mt-1 tracking-tighter">₪0.00</p>
+            </div>
+        </div>
+
+        <div id="summaryCards" class="grid grid-cols-2 gap-3 mt-8 border-t border-slate-700 pt-6">
             <div class="card-stat text-center">
                 <p class="text-[10px] text-slate-500 font-bold">עלות (הערכה)</p>
                 <p id="sumCost" class="text-xl font-black text-green-400">₪0.00</p>
@@ -205,8 +217,12 @@
             state.currentTab = t;
             document.getElementById('calcView').classList.toggle('hidden', t !== 'calc');
             document.getElementById('planView').classList.toggle('hidden', t !== 'plan');
+            document.getElementById('usageView').classList.toggle('hidden', t !== 'usage');
+            document.getElementById('vehicleSection').style.display = t === 'usage' ? 'none' : 'block';
+            document.getElementById('summaryCards').style.display = t === 'usage' ? 'none' : 'grid';
             document.getElementById('tabCalcBtn').className = t === 'calc' ? 'pb-2 px-4 tab-active' : 'pb-2 px-4 text-slate-400';
             document.getElementById('tabPlanBtn').className = t === 'plan' ? 'pb-2 px-4 tab-active' : 'pb-2 px-4 text-slate-400';
+            document.getElementById('tabUsageBtn').className = t === 'usage' ? 'pb-2 px-4 tab-active' : 'pb-2 px-4 text-slate-400';
             calculate();
         }
 
@@ -326,6 +342,12 @@
                 const start = new Date(dep.getTime() - hours * 3600000);
                 document.getElementById('planStartTime').innerText = start.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
                 document.getElementById('planStatus').innerText = start < new Date() ? "⚠️ איחור בלו\"ז" : "זמן תקין לחיבור";
+            } else if (state.currentTab === 'usage') {
+                const kwh = parseFloat(document.getElementById('usageKwh').value) || 0;
+                const cost = kwh * prc;
+                document.getElementById('usageCost').innerText = `₪${cost.toFixed(2)}`;
+                document.getElementById('sumCost').innerText = `₪${cost.toFixed(2)}`;
+                document.getElementById('sumRange').innerText = `+${Math.round(kwh / 0.185)} ק"מ`;
             }
         }
 
