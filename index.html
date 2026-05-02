@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,16 +9,66 @@
     <script src="ev-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Assistant', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-style { background: #334155; border: 1px solid #475569; border-radius: 12px; padding: 10px; width: 100%; color: white; text-align: center; font-weight: bold; }
-        .input-style:disabled { opacity: 0.4; cursor: not-allowed; }
-        .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 800; }
-        .btn-preset { background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 4px; font-size: 0.7rem; color: #94a3b8; flex: 1; }
-        .progress-bg { background: rgba(51, 65, 85, 0.5); border-radius: 20px; height: 10px; overflow: hidden; }
-        .progress-fill { background: linear-gradient(90deg, #38bdf8, #22c55e); height: 100%; width: 0%; transition: width 0.5s ease; }
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-style {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 10px;
+            width: 100%;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .input-style:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #38bdf8;
+            color: #38bdf8;
+            font-weight: 800;
+        }
+
+        .btn-preset {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 4px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            flex: 1;
+        }
+
+        .progress-bg {
+            background: rgba(51, 65, 85, 0.5);
+            border-radius: 20px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #38bdf8, #22c55e);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
     </style>
 </head>
+
 <body class="p-4 min-h-screen flex flex-col items-center">
 
     <header class="text-center mb-4">
@@ -31,21 +82,24 @@
     </div>
 
     <main class="glass p-6 rounded-3xl w-full max-w-lg shadow-2xl">
-        
+
         <section id="vehicleSection" class="grid grid-cols-2 gap-3 mb-6 border-b border-slate-700 pb-6">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">מותג</label>
-                <select id="brandSelect" class="input-style lockable" onchange="initModels(); savePreferences();"></select>
+                <select id="brandSelect" class="input-style lockable"
+                    onchange="initModels(); savePreferences();"></select>
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 italic">דגם</label>
-                <select id="modelSelect" class="input-style lockable" onchange="updateCapacity(); savePreferences();"></select>
+                <select id="modelSelect" class="input-style lockable"
+                    onchange="updateCapacity(); savePreferences();"></select>
             </div>
             <div class="col-span-2 mt-2">
                 <div class="flex gap-4">
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1">קיבולת נטו (kWh)</label>
-                        <input type="number" id="capacity" class="input-style lockable" value="77" oninput="calculate()">
+                        <input type="number" id="capacity" class="input-style lockable" value="77"
+                            oninput="calculate()">
                     </div>
                     <div class="w-1/2">
                         <label class="block text-[10px] font-bold text-slate-500 mb-1 italic">הספק עמדה (kW)</label>
@@ -55,7 +109,8 @@
                 <div class="flex gap-1 mt-2">
                     <button class="btn-preset lockable" onclick="setPower(11); savePreferences();">ביתי (11)</button>
                     <button class="btn-preset lockable" onclick="setPower(50); savePreferences();">מהירה (50)</button>
-                    <button class="btn-preset lockable" onclick="setPower(175); savePreferences();">אולטרה (175)</button>
+                    <button class="btn-preset lockable" onclick="setPower(175); savePreferences();">אולטרה
+                        (175)</button>
                 </div>
             </div>
         </section>
@@ -63,7 +118,8 @@
         <section class="mb-6 border-b border-slate-700 pb-6">
             <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase italic">תעריף חשמל (₪)</label>
             <div class="flex gap-3">
-                <input type="number" id="kwhPrice" class="input-style lockable w-1/2" value="0.625" step="0.001" oninput="calculate()">
+                <input type="number" id="kwhPrice" class="input-style lockable w-1/2" value="0.625" step="0.001"
+                    oninput="calculate()">
                 <div class="flex gap-1 w-1/2">
                     <button class="btn-preset lockable" onclick="setPrice(0.625); savePreferences();">בית</button>
                     <button class="btn-preset lockable" onclick="setPrice(2.2); savePreferences();">חוץ</button>
@@ -84,17 +140,23 @@
             </div>
 
             <div id="displayArea" class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700 text-center">
-                <p id="mainLabel" class="text-[10px] text-slate-500 uppercase tracking-widest">זמן טעינה נותר (HH:MM)</p>
+                <p id="mainLabel" class="text-[10px] text-slate-500 uppercase tracking-widest">זמן טעינה נותר (HH:MM)
+                </p>
                 <p id="mainDisplay" class="text-6xl font-black text-white my-1 tracking-tighter">--:--</p>
                 <p id="subDisplay" class="text-xs text-sky-400 font-bold uppercase"></p>
                 <div id="progressContainer" class="px-8 mt-4 hidden">
-                    <div class="progress-bg"><div id="progressBar" class="progress-fill"></div></div>
+                    <div class="progress-bg">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
                     <p id="progressText" class="text-[10px] text-sky-400 mt-2 font-bold uppercase"></p>
                 </div>
             </div>
 
-            <button id="timerBtn" onclick="toggleTimer()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase">התחל מדידה</button>
-            <div id="liveStats" class="hidden grid grid-cols-2 gap-2 p-4 bg-slate-800/80 rounded-xl border border-slate-700">
+            <button id="timerBtn" onclick="toggleTimer()"
+                class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase">התחל
+                מדידה</button>
+            <div id="liveStats"
+                class="hidden grid grid-cols-2 gap-2 p-4 bg-slate-800/80 rounded-xl border border-slate-700">
                 <div class="text-center border-l border-slate-700">
                     <p class="text-[9px] text-slate-500">עלות בפועל</p>
                     <p id="liveCost" class="text-xl font-bold text-green-400">₪0.00</p>
@@ -108,9 +170,12 @@
 
         <div id="planView" class="hidden space-y-6">
             <div class="grid grid-cols-3 gap-2 text-center">
-                <div><label class="text-[10px] font-bold text-slate-500 italic">נוכחי (%)</label><input type="number" id="planCurrent" class="input-style" value="20" oninput="calculate()"></div>
-                <div><label class="text-[10px] font-bold text-slate-500 italic">יעד (%)</label><input type="number" id="planTarget" class="input-style" value="80" oninput="calculate()"></div>
-                <div><label class="text-[10px] font-bold text-slate-500 italic">יציאה</label><input type="time" id="departureTime" class="input-style" value="07:30" oninput="calculate()"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 italic">נוכחי (%)</label><input type="number"
+                        id="planCurrent" class="input-style" value="20" oninput="calculate()"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 italic">יעד (%)</label><input type="number"
+                        id="planTarget" class="input-style" value="80" oninput="calculate()"></div>
+                <div><label class="text-[10px] font-bold text-slate-500 italic">יציאה</label><input type="time"
+                        id="departureTime" class="input-style" value="07:30" oninput="calculate()"></div>
             </div>
             <div class="py-8 bg-sky-500/10 rounded-2xl border border-sky-500/30 text-center">
                 <p class="text-xs text-sky-300 font-bold uppercase tracking-widest">חיבור מומלץ ב-</p>
@@ -141,9 +206,22 @@
             </div>
         </div>
 
-        <footer class="mt-10 w-full flex justify-center border-t border-slate-800/50 pt-8">
+        <footer class="mt-10 w-full flex flex-col items-center border-t border-slate-800/50 pt-8">
+            
+            <!-- מונה משתמשים ייחודיים מעוצב -->
+            <div class="mb-6 inline-flex items-center gap-2 px-3 py-1 bg-slate-800/30 border border-slate-700/50 rounded-full backdrop-blur-sm">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span class="text-[10px] font-medium text-slate-400 tracking-wide uppercase italic">
+                    פוטנציאל כניסות: <span id="user-count" class="text-sky-400 font-bold ml-1">...</span>
+                </span>
+            </div>
+
+            <!-- כפתור פרגון -->
             <a href="https://www.paypal.me/eldadmichaeli" target="_blank" 
-               class="group flex items-center gap-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 hover:border-sky-500/50 transition-all duration-300 px-5 py-2.5 rounded-xl">
+            class="group flex items-center gap-3 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 hover:border-sky-500/50 transition-all duration-300 px-5 py-2.5 rounded-xl">
                 <svg class="w-5 h-5 fill-sky-400 opacity-80 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M20.067 8.478c.492.476.752 1.06.78 1.752.028.692-.146 1.412-.523 2.16l-.033.064c-.38.743-.88 1.258-1.503 1.543-.623.285-1.396.34-2.318.163-.092-.018-.186-.041-.28-.069l-.116-.035-1.127 5.12c-.04.183-.2.318-.387.318h-2.512a.39.39 0 0 1-.379-.481l1.114-5.066-.01.002c-.083.018-.17.033-.257.045l-.105.014c-.66.084-1.298.053-1.913-.095l-.104-.025-1.344 6.11c-.04.183-.2.318-.387.318H6.5a.39.39 0 0 1-.379-.481L8.74 5.922a.39.39 0 0 1 .379-.318h6.115c1.022 0 1.868.12 2.536.359.668.238 1.183.585 1.547 1.039.364.455.581.947.65 1.476z"/>
                 </svg>
@@ -152,8 +230,65 @@
         </footer>
     </main>
 
+    <!-- Firebase SDKs (גרסת Compat למען פשטות) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <script>
+        // הגדרות Firebase של הפרויקט שלך
+        const firebaseConfig = {
+            apiKey: "AIzaSyCToM09fDA0pMg9a4k-L7ilMpJ6EQpMF0s",
+            authDomain: "ev-control-pro.firebaseapp.com",
+            databaseURL: "https://ev-control-pro-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ev-control-pro",
+            storageBucket: "ev-control-pro.firebasestorage.app",
+            messagingSenderId: "469430405622",
+            appId: "1:469430405622:web:75ea4527c07d5ff6525fd7",
+            measurementId: "G-90ELFWH678"
+        };
+
+        // אתחול Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        function updateUserCounter() {
+            const counterRef = db.ref('user_count');
+            const hasVisited = localStorage.getItem('ev_pro_unique_visitor');
+
+            if (!hasVisited) {
+                // משתמש חדש: מגדיל את המונה ב-1
+                counterRef.transaction((currentValue) => {
+                    return (currentValue || 0) + 1;
+                }, (error, committed, snapshot) => {
+                    if (committed) {
+                        // מסמן את המשתמש כדי שלא ייספר שוב ברענון הבא
+                        localStorage.setItem('ev_pro_unique_visitor', 'true');
+                        updateCounterDisplay(snapshot.val());
+                    } else if (error) {
+                        console.error("Counter transaction failed:", error);
+                        readOnlyCounter(counterRef); // Fallback למקרה של שגיאה
+                    }
+                });
+            } else {
+                // משתמש חוזר: קורא את הנתון הקיים בלי להגדיל
+                readOnlyCounter(counterRef);
+            }
+        }
+
+        // פונקציית עזר לקריאה בלבד של המונה
+        function readOnlyCounter(counterRef) {
+            counterRef.once('value').then((snapshot) => {
+                updateCounterDisplay(snapshot.val() || 0);
+            }).catch(error => console.error("Error reading counter:", error));
+        }
+
+        // פונקציית עזר לעדכון התצוגה
+        function updateCounterDisplay(value) {
+            const countEl = document.getElementById('user-count');
+            if (countEl) countEl.innerText = value.toLocaleString();
+        }
+
         let state = { currentTab: 'calc', timer: null, start: null };
+
         function savePreferences() {
             const prefs = {
                 brand: document.getElementById('brandSelect').value,
@@ -168,11 +303,9 @@
         function initBrands() {
             const bSel = document.getElementById('brandSelect');
             bSel.innerHTML = '';
-            // Attempt to load saved preferences
             const savedPrefs = JSON.parse(localStorage.getItem('ev_pro_prefs'));
             for (let b in evDb) {
                 let opt = new Option(evDb[b].label, b);
-                // Priority: Saved preference > Default (vw)
                 if (savedPrefs && b === savedPrefs.brand) {
                     opt.selected = true;
                 } else if (!savedPrefs && b === 'vw') {
@@ -180,13 +313,11 @@
                 }
                 bSel.add(opt);
             }
-            // Load secondary fields if they exist
             if (savedPrefs) {
                 if (savedPrefs.power) document.getElementById('power').value = savedPrefs.power;
                 if (savedPrefs.price) document.getElementById('kwhPrice').value = savedPrefs.price;
                 if (savedPrefs.tab) switchTab(savedPrefs.tab);
             }
-            // Initialize models based on selected brand (pass saved model if available)
             initModels(savedPrefs ? savedPrefs.model : null);
         }
 
@@ -194,12 +325,9 @@
             const b = document.getElementById('brandSelect').value;
             const mSel = document.getElementById('modelSelect');
             mSel.innerHTML = '';
-            
             for (let m in evDb[b].models) {
                 let opt = new Option(evDb[b].models[m][0], m);
-                if (savedModelId && m === savedModelId) {
-                    opt.selected = true;
-                }
+                if (savedModelId && m === savedModelId) opt.selected = true;
                 mSel.add(opt);
             }
             updateCapacity();
@@ -233,27 +361,20 @@
             const btn = document.getElementById('timerBtn');
             const locks = document.querySelectorAll('.lockable');
             const label = document.getElementById('mainLabel');
-            
-            // בדיקה האם השדות נעולים (אינדיקציה לכך שאנחנו במדידה או בסיום מדידה)
             const isLocked = document.getElementById('brandSelect').disabled;
-        
             if (isLocked) {
-                // לוגיקת איפוס (Reset)
                 if (state.timer) {
                     clearInterval(state.timer);
                     state.timer = null;
                 }
-                
-                // החזרת ה-UI למצב התחלתי
                 btn.innerText = "התחל מדידה";
                 btn.className = "w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-black py-4 rounded-xl shadow-lg transition-all uppercase";
                 locks.forEach(i => i.disabled = false);
                 document.getElementById('progressContainer').classList.add('hidden');
                 document.getElementById('liveStats').classList.add('hidden');
                 label.innerText = "זמן טעינה נותר (HH:MM)";
-                calculate(); // מחשב מחדש את הערכים הסטטיים
+                calculate();
             } else {
-                // לוגיקת התחלה (Start)
                 state.start = Date.now();
                 locks.forEach(i => i.disabled = true);
                 btn.innerText = "עצור מדידה";
@@ -271,41 +392,28 @@
             const curSoc = parseFloat(document.getElementById('calcCurrent').value);
             const tarSoc = parseFloat(document.getElementById('calcTarget').value);
             const price = parseFloat(document.getElementById('kwhPrice').value);
-        
-            // חישוב הזמן המקסימלי הדרוש להגיע ליעד (בשניות)
             const kwhNeeded = ((tarSoc - curSoc) / 100) * cap;
             const maxSecondsNeeded = (kwhNeeded / (pwr * 0.9)) * 3600;
-            
             let elapsed = (Date.now() - state.start) / 1000;
             let finished = false;
-        
-            // בדיקה אם הגענו ליעד
             if (elapsed >= maxSecondsNeeded) {
-                elapsed = maxSecondsNeeded; // קיבוע הזמן על היעד המדויק
+                elapsed = maxSecondsNeeded;
                 finished = true;
             }
-        
-            // 1. זמן שחלף (השעון הגדול)
             const h = Math.floor(elapsed / 3600).toString().padStart(2, '0');
             const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
             const s = Math.floor(elapsed % 60).toString().padStart(2, '0');
             document.getElementById('mainDisplay').innerText = `${h}:${m}:${s}`;
-        
-            // 2. חישובי אנרגיה ועלות (מבוסס על הזמן שחלף, מקובע למקסימום)
             const kwhIn = (elapsed / 3600) * pwr * 0.9;
             const liveSoc = Math.min(tarSoc, curSoc + (kwhIn / cap) * 100);
-        
             document.getElementById('liveKwh').innerText = kwhIn.toFixed(2) + " kWh";
             document.getElementById('liveCost').innerText = "₪" + (kwhIn * price).toFixed(2);
             document.getElementById('progressBar').style.width = `${((liveSoc - curSoc) / (tarSoc - curSoc)) * 100}%`;
             document.getElementById('progressText').innerText = `מצב סוללה: ${liveSoc.toFixed(1)}%`;
-        
-            // 3. סיום משוער (או הודעת סיום)
             if (finished) {
                 clearInterval(state.timer);
                 state.timer = null;
                 document.getElementById('subDisplay').innerText = "הטעינה הושלמה!";
-                
                 const btn = document.getElementById('timerBtn');
                 btn.innerText = "טעינה הסתיימה - אפס";
                 btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase";
@@ -320,27 +428,23 @@
             const cap = parseFloat(document.getElementById('capacity').value) || 77;
             const pwr = parseFloat(document.getElementById('power').value) || 11;
             const prc = parseFloat(document.getElementById('kwhPrice').value) || 0.625;
-            
             let cur = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcCurrent' : 'planCurrent').value) || 0;
             let tar = parseFloat(document.getElementById(state.currentTab === 'calc' ? 'calcTarget' : 'planTarget').value) || 80;
-
             const energy = Math.max(0, ((tar - cur) / 100) * cap);
             const hours = energy / (pwr * 0.9);
-
             document.getElementById('sumCost').innerText = `₪${(energy * prc).toFixed(2)}`;
             document.getElementById('sumRange').innerText = `+${Math.round(energy / 0.185)} ק"מ`;
-
             if (state.currentTab === 'calc' && !state.timer) {
                 const hh = Math.floor(hours);
                 const mm = Math.round((hours % 1) * 60);
-                document.getElementById('mainDisplay').innerText = `${hh}:${mm.toString().padStart(2,'0')}`;
-                document.getElementById('subDisplay').innerText = `סיום משוער ב: ${new Date(Date.now() + hours*3600000).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})}`;
+                document.getElementById('mainDisplay').innerText = `${hh}:${mm.toString().padStart(2, '0')}`;
+                document.getElementById('subDisplay').innerText = `סיום משוער ב: ${new Date(Date.now() + hours * 3600000).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`;
             } else if (state.currentTab === 'plan') {
                 const [h, m] = document.getElementById('departureTime').value.split(':');
                 let dep = new Date(); dep.setHours(h, m, 0);
-                if (dep < new Date()) dep.setDate(dep.getDate()+1);
+                if (dep < new Date()) dep.setDate(dep.getDate() + 1);
                 const start = new Date(dep.getTime() - hours * 3600000);
-                document.getElementById('planStartTime').innerText = start.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                document.getElementById('planStartTime').innerText = start.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('planStatus').innerText = start < new Date() ? "⚠️ איחור בלו\"ז" : "זמן תקין לחיבור";
             } else if (state.currentTab === 'usage') {
                 const kwh = parseFloat(document.getElementById('usageKwh').value) || 0;
@@ -350,8 +454,11 @@
                 document.getElementById('sumRange').innerText = `+${Math.round(kwh / 0.185)} ק"מ`;
             }
         }
-
-        window.onload = initBrands;
+        window.onload = function () {
+            initBrands();
+            updateUserCounter();
+        };
     </script>
 </body>
+
 </html>
